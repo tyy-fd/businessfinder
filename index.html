@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeadGenius - B2B Local Leads</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f4f9;
+      --card: #ffffff;
+      --text: #1a1a24;
+      --muted: #6e6e80;
+      --line: #e2e2ea;
+      --primary: #2563eb;
+      --primary-soft: #eff6ff;
+      --green: #10b981;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --navy: #0f172a;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      background: var(--card);
+      border-right: 1px solid var(--line);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .logo {
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-icon {
+      width: 24px; height: 24px;
+      background: var(--primary);
+      border-radius: 6px;
+    }
+
+    nav {
+      margin-top: 40px;
+      display: grid;
+      gap: 8px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    nav a.active, nav a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    main {
+      padding: 30px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page-section { display: none; }
+    .page-section.active-section { display: block; }
+
+    /* Search Area */
+    .search-hero {
+      text-align: center;
+      padding: 40px 0 60px;
+    }
+    .search-hero h1 { font-size: 36px; margin-bottom: 10px; }
+    .search-hero p { color: var(--muted); margin-bottom: 30px; font-size: 16px; }
+
+    .search-bar-container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 8px 8px 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      align-items: center;
+      transition: border-color 0.2s;
+    }
+    
+    .search-input-wrapper:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
+    .search-input-wrapper input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      padding: 10px;
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 999px;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    
+    .btn-secondary {
+      background: white;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 8px 16px;
+    }
+    .btn-secondary:hover { background: #f8fafc; }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 10px;
+      margin-right: 10px;
+      border-radius: 50%;
+    }
+    .btn-icon:hover { background: var(--bg); color: var(--text); }
+
+    /* Filters */
+    .filters-panel {
+      display: none;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 16px;
+      text-align: left;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      position: absolute;
+      width: 100%;
+      z-index: 10;
+    }
+    .filters-panel.show { display: grid; }
+    
+    .filter-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
+    .filter-group select, .filter-group input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
+    
+    .checkbox-label { display: flex !important; align-items: center; gap: 8px; font-size: 14px !important; color: var(--text) !important; cursor: pointer; margin-bottom: 12px !important; }
+    .checkbox-label input { width: auto; }
+
+    /* Results Grid */
+    .results-grid { display: grid; gap: 20px; margin-top: 20px; }
+    
+    .result-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    
+    .biz-main { flex: 1; }
+    .biz-name { font-size: 20px; font-weight: 700; margin: 0 0 8px 0; }
+    .biz-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .biz-meta span { display: flex; align-items: center; gap: 4px; }
+    
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge.red { background: #fef2f2; color: var(--red); }
+    .badge.orange { background: #fffbeb; color: var(--orange); }
+    .badge.green { background: #ecfdf5; color: var(--green); }
+    .badge.gray { background: #f1f5f9; color: var(--muted); }
+    
+    .score-reasons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .reason-tag { font-size: 11px; background: var(--primary-soft); color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+
+    .biz-score-box {
+      text-align: right;
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 1px solid var(--line);
+      padding-left: 24px;
+    }
+    
+    .score-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
+    .score-value { font-size: 42px; font-weight: 900; line-height: 1; margin: 8px 0; }
+    .score-value.high { color: var(--green); }
+    .score-value.med { color: var(--orange); }
+    .score-value.low { color: var(--muted); }
+    
+    .card-actions { display: grid; gap: 8px; margin-top: 16px; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+    th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--line); font-size: 14px; }
+    th { background: #f8fafc; font-weight: 600; color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+    
+    /* Settings */
+    .settings-group { background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--line); margin-bottom: 24px; max-width: 600px; }
+    .settings-group h3 { margin: 0 0 16px 0; }
+    .settings-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;}
+    .settings-group input[type="password"] { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 16px; }
+
+    .loading-state { text-align: center; padding: 40px; color: var(--muted); display: none; }
+
+    .security-gate {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: radial-gradient(circle at top, #eff6ff 0, #f4f4f9 45%, #eef2ff 100%);
+    }
+    .security-card {
+      width: min(420px, 100%);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 34px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .12);
+      text-align: center;
+    }
+    .security-card h1 { margin: 18px 0 8px; font-size: 30px; }
+    .security-card p { color: var(--muted); margin: 0 0 24px; }
+    .security-card input { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; margin-bottom: 12px; }
+    .security-card button { width: 100%; }
+    .security-error { color: var(--red); min-height: 20px; font-size: 13px; margin-top: 10px; }
+    .app.locked { display: none; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; display: none; z-index: 100;}
+  </style>
+</head>
+<body>
+
+  <section class="security-gate" id="securityGate">
+    <div class="security-card">
+      <div class="logo" style="justify-content:center"><div class="logo-icon"></div> LeadGenius</div>
+      <h1>Secure access</h1>
+      <p>Enter the access password to open the lead finder.</p>
+      <input type="password" id="accessPassword" placeholder="Password" autocomplete="current-password">
+      <button class="btn-primary" id="unlockBtn">Open LeadGenius</button>
+      <div class="security-error" id="securityError"></div>
+    </div>
+  </section>
+
+  <div class="app locked" id="appRoot">
+    <aside>
+      <div class="logo"><div class="logo-icon"></div> LeadGenius</div>
+      <nav>
+        <a href="#" data-page="search" class="active">🔍 Find Leads</a>
+        <a href="#" data-page="saved">📋 Saved Leads</a>
+        <a href="#" data-page="settings">⚙️ Settings</a>
+      </nav>
+    </aside>
+
+    <main>
+      <div id="search" class="page-section active-section">
+        <div class="search-hero">
+          <h1>Find B2B Opportunities</h1>
+          <p>Use natural language to discover local businesses needing your services.</p>
+          
+          <div class="search-bar-container">
+            <div class="search-input-wrapper">
+              <input type="text" id="nlQuery" placeholder="e.g. Find electricians in Bromley with more than 30 reviews and no website" />
+              <button class="btn-icon" id="toggleFilters" title="Advanced Filters">⚙️</button>
+              <button class="btn-primary" id="runSearchBtn">Search Maps</button>
+            </div>
+            
+            <div class="filters-panel" id="filtersPanel">
+              <div class="filter-group">
+                <label class="checkbox-label"><input type="checkbox" id="f_noWebsite"> No Website</label>
+                <label class="checkbox-label"><input type="checkbox" id="f_outdated"> Potentially Outdated Website</label>
+                <label class="checkbox-label"><input type="checkbox" id="f_hasPhone"> Has Phone Number</label>
+              </div>
+              <div class="filter-group">
+                <label>Minimum Rating</label>
+                <select id="f_minRating">
+                  <option value="0">Any</option>
+                  <option value="3">3.0+</option>
+                  <option value="4">4.0+</option>
+                  <option value="4.5">4.5+</option>
+                </select>
+                <label style="margin-top: 12px;">Minimum Reviews</label>
+                <input type="number" id="f_minReviews" placeholder="e.g. 20">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="loading-state" id="loadingState">Analyzing query and searching maps... ⏳</div>
+        <div class="results-grid" id="resultsGrid"></div>
+      </div>
+
+      <div id="saved" class="page-section">
+        <h2 style="margin-top: 0;">Pipeline</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Phone</th>
+              <th>Date Added</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="savedLeadsTableBody">
+            </tbody>
+        </table>
+      </div>
+
+      <div id="settings" class="page-section">
+        <h2 style="margin-top: 0;">Configuration</h2>
+        <div class="settings-group">
+          <h3>Server Configuration</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 0; line-height: 1.6;">
+            API keys are securely configured as Vercel Environment Variables. This browser never receives or stores them. Searches use live SerpAPI Google Maps results only.
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast">Message</div>
+
+  <script>
+    // --- APP STATE & INIT ---
+    let savedLeads = JSON.parse(localStorage.getItem('savedLeads') || '[]');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const unlocked = sessionStorage.getItem('leadGeniusUnlocked') === 'true';
+      document.getElementById('securityGate').style.display = unlocked ? 'none' : 'grid';
+      document.getElementById('appRoot').classList.toggle('locked', !unlocked);
+      
+      renderSavedLeads();
+    });
+
+    const unlockApp = () => {
+      const password = document.getElementById('accessPassword').value;
+      if (password !== 'Corner@11') {
+        document.getElementById('securityError').textContent = 'Incorrect password.';
+        return;
+      }
+      sessionStorage.setItem('leadGeniusUnlocked', 'true');
+      document.getElementById('securityGate').style.display = 'none';
+      document.getElementById('appRoot').classList.remove('locked');
+    };
+    document.getElementById('unlockBtn').addEventListener('click', unlockApp);
+    document.getElementById('accessPassword').addEventListener('keydown', e => { if (e.key === 'Enter') unlockApp(); });
+
+    // --- NAVIGATION ---
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active-section'));
+        
+        e.target.classList.add('active');
+        document.getElementById(e.target.dataset.page).classList.add('active-section');
+      });
+    });
+
+    // --- UI HELPERS ---
+    const showToast = (msg) => {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    };
+
+    document.getElementById('toggleFilters').addEventListener('click', () => {
+      document.getElementById('filtersPanel').classList.toggle('show');
+    });
+
+
+    // --- CORE LOGIC: LEAD SCORING ---
+    function scoreBusiness(biz) {
+      let score = 0;
+      let reasons = [];
+
+      if (!biz.website) { score += 40; reasons.push("No Website (+40)"); }
+      if (biz.website && biz.outdated_website) { score += 30; reasons.push("Outdated Web Design (+30)"); }
+      
+      if (biz.reviews > 50) { score += 20; reasons.push("Strong Reviews > 50 (+20)"); }
+      if (biz.reviews > 100) { score += 5; reasons.push("Exceptional Reviews (+5)"); }
+      
+      if (biz.rating >= 4.0) { score += 10; reasons.push("High Rating (+10)"); }
+      
+      if (biz.phone) { score += 5; reasons.push("Phone Available (+5)"); }
+      if (!biz.website || !biz.phone) { score += 5; reasons.push("Incomplete Info (+5)"); }
+
+      return { score: Math.min(score, 100), reasons };
+    }
+
+    // --- CORE LOGIC: SEARCH ---
+    document.getElementById('runSearchBtn').addEventListener('click', async () => {
+      const query = document.getElementById('nlQuery').value;
+      if(!query) return showToast('Please enter a search query');
+
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('resultsGrid').innerHTML = '';
+      
+      try {
+        const response = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `Search failed (${response.status})`);
+
+        const results = Array.isArray(data.businesses) ? data.businesses : [];
+        processAndRenderResults(results);
+
+      } catch (err) {
+        showToast("Error: " + err.message);
+      } finally {
+        document.getElementById('loadingState').style.display = 'none';
+      }
+    });
+
+    function processAndRenderResults(rawResults) {
+      const grid = document.getElementById('resultsGrid');
+      
+      // Filter overrides
+      const reqNoWeb = document.getElementById('f_noWebsite').checked;
+      const reqOutdated = document.getElementById('f_outdated').checked;
+      const minRating = parseFloat(document.getElementById('f_minRating').value) || 0;
+      const minReviews = parseInt(document.getElementById('f_minReviews').value) || 0;
+
+      let processed = rawResults.map(biz => {
+        // Standardize data model
+        const standardBiz = {
+          id: biz.place_id || biz.data_id || `${biz.title || biz.name}-${biz.address || ''}`,
+          name: biz.title || biz.name,
+          category: biz.type || 'Local Business',
+          phone: biz.phone,
+          website: biz.website || null,
+          rating: biz.rating || 0,
+          reviews: biz.reviews || 0,
+          address: biz.address,
+          open_state: biz.open_state || biz.hours || '',
+          maps_link: biz.link || biz.place_id_search || '',
+          outdated_website: false
+        };
+        
+        const scoring = scoreBusiness(standardBiz);
+        return { ...standardBiz, score: scoring.score, scoreReasons: scoring.reasons };
+      });
+
+      // Apply Manual Filters
+      if(reqNoWeb) processed = processed.filter(b => !b.website);
+      if(reqOutdated) processed = processed.filter(b => b.outdated_website);
+      if(minRating > 0) processed = processed.filter(b => b.rating >= minRating);
+      if(minReviews > 0) processed = processed.filter(b => b.reviews >= minReviews);
+
+      // Sort by Lead Score
+      processed.sort((a,b) => b.score - a.score);
+
+      if(processed.length === 0) {
+        grid.innerHTML = '<p style="text-align:center; color:#666;">No results matched your criteria.</p>';
+        return;
+      }
+
+      processed.forEach(biz => {
+        const scoreClass = biz.score > 75 ? 'high' : biz.score > 40 ? 'med' : 'low';
+        
+        let websiteHtml = biz.website 
+          ? `<a href="${biz.website}" target="_blank" style="color:var(--primary)">${biz.website.replace(/^https?:\/\//,'')}</a>`
+          : `<span class="badge red">No Website</span>`;
+          
+        if(biz.website && biz.outdated_website) websiteHtml += ` <span class="badge orange">Potentially Outdated</span>`;
+
+        let reasonsHtml = biz.scoreReasons.map(r => `<span class="reason-tag">${r}</span>`).join('');
+
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `
+          <div class="biz-main">
+            <h3 class="biz-name">${biz.name}</h3>
+            <div class="biz-meta">
+              <span>🏷️ ${biz.category}</span>
+              <span>📍 ${biz.address}</span>
+              <span>⭐ ${biz.rating} (${biz.reviews} reviews)</span>
+              ${biz.phone ? `<span>📞 ${biz.phone}</span>` : ''}
+            </div>
+            <div style="margin-bottom: 12px;">🌐 ${websiteHtml}</div>
+            <div class="score-reasons">${reasonsHtml}</div>
+          </div>
+          
+          <div class="biz-score-box">
+            <div>
+              <div class="score-label">Opp Score</div>
+              <div class="score-value ${scoreClass}">${biz.score}</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-primary" onclick='saveLead(${JSON.stringify(biz).replace(/'/g, "&apos;")})'>Save Lead</button>
+              <button class="btn-secondary" onclick="generateOutreach('${biz.name}')">Gen. Outreach</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // --- PIPELINE & ACTIONS ---
+    window.saveLead = function(biz) {
+      if(savedLeads.find(l => l.name === biz.name)) {
+        return showToast('Lead already saved!');
+      }
+      
+      savedLeads.push({
+        ...biz,
+        status: 'Not Contacted',
+        dateAdded: new Date().toLocaleDateString()
+      });
+      localStorage.setItem('savedLeads', JSON.stringify(savedLeads));
+      renderSavedLeads();
+      showToast('Lead saved to pipeline');
+    };
+
+    window.generateOutreach = function(bizName) {
+      // In a real app, this calls OpenAI API based on business context
+      const text = `Hi ${bizName} team, I noticed you have great reviews but your online presence could use an update. I help local businesses in the area capture more leads. Do you have 5 minutes this week to chat?`;
+      prompt("Generated Outreach Message (Copy this):", text);
+    };
+
+    window.updateLeadStatus = function(index, newStatus) {
+      savedLeads[index].status = newStatus;
+      localStorage.setItem('savedLeads', JSON.stringify(savedLeads));
+      showToast('Status updated');
+    };
+
+    function renderSavedLeads() {
+      const tbody = document.getElementById('savedLeadsTableBody');
+      tbody.innerHTML = '';
+      
+      if(savedLeads.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No leads saved yet.</td></tr>';
+        return;
+      }
+
+      savedLeads.forEach((lead, i) => {
+        const statuses = ['Not Contacted', 'Message Sent', 'Replied', 'Interested', 'Closed', 'Not Interested'];
+        let statusOptions = statuses.map(s => `<option value="${s}" ${lead.status === s ? 'selected' : ''}>${s}</option>`).join('');
+        
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${lead.name}</strong><br><small style="color:var(--muted)">${lead.category}</small></td>
+            <td><strong style="color:var(--green)">${lead.score}</strong></td>
+            <td>
+              <select onchange="updateLeadStatus(${i}, this.value)" style="padding:4px; border-radius:4px; border:1px solid var(--line);">
+                ${statusOptions}
+              </select>
+            </td>
+            <td>${lead.phone || 'N/A'}</td>
+            <td>${lead.dateAdded}</td>
+            <td><button class="btn-secondary" onclick="generateOutreach('${lead.name}')">Message</button></td>
+          </tr>
+        `;
+      });
+    }
+
+  </script>
+</body>
+</html>
